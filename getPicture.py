@@ -37,24 +37,34 @@ def getPicInfoFromPage(pageFile):
 
     return picInfos
 
+#if file exist return false
 def writePage(url,count):
     if not os.path.exists('./pages/'):
         os.mkdir('./pages/')
+    if os.path.exists('./pages/'+str(count)+'.html'):
+        print ('./pages/'+str(count)+'.html'+" file already exists")
+        return False
     page=requests.get(url)
     f=open('./pages/'+str(count)+'.html','wb')
     f.write(page.text)
     f.close()
     print (str(count)+'page saved!')
+    return True
 
 
+#if pic exist return false
 def writePic(picInfo):
     if not os.path.exists('./images/'):
         os.mkdir('./images/')
+    if os.path.exists(picInfo[0]):
+        print (picInfo[0]+" pic already exists")
+        return False
     conn = urllib.urlopen(picInfo[1])
     f = open(picInfo[0],'wb')
     f.write(conn.read())
     f.close()
     print('Pic Saved!')
+    return True
 
 
 def nextPageUrl(page):
@@ -78,21 +88,21 @@ indexPage = requests.post("http://e-shuushuu.net/search/process/", data=params)
 picCount=0
 if not os.path.exists('./pages/'):
     os.mkdir('./pages/')
-f=open('./pages/0.html','wb')
-f.write(indexPage.text)
-f.close()
+if not os.path.exists('./pages/0.html'):
+    f=open('./pages/0.html','wb')
+    f.write(indexPage.text)
+    f.close()
 
 picInfos=getPicInfoFromPage("./pages/0.html")
-
 
 
 for info in picInfos:
     if info[2]>minX and info[3]>minY:
         if not bk or info[2]>info[3]:
-            writePic(info)
-            picCount=picCount+1
-            if picCount==maxCount:
-                break
+            if writePic(info):
+                picCount=picCount+1
+                if picCount==maxCount:
+                    break
 
 
 pageCount=0
@@ -103,8 +113,8 @@ while picCount<maxCount:
     picInfos=getPicInfoFromPage('./pages/'+str(pageCount)+'.html')
     for info in picInfos:
         if info[2]>minX and info[3]>minY:
-            writePic(info)
-            picCount=picCount+1
-            if picCount==maxCount:
-                break
+            if writePic(info):
+                picCount=picCount+1
+                if picCount==maxCount:
+                    break
 
